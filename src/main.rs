@@ -1,6 +1,56 @@
 mod ml_data;
+use crate::ml_data::{Node, read_ml_json};
+use std::path::Path;
+use std::string::String;
+use std::collections::HashMap;
 
-fn main() {}
+/*-------------------------------------------------------------------------------------------------------------*/
+fn main() {
+    let mut xxnd:i32 = 0;    
+    let mut freqnod = 0;
+    let mut corxx: Vec<f64> = Vec::new();
+    let mut corfreqnod:f64 = 0.0;
+    let dets_path = Path::new("/home/alan/Escritorio/rust-tutorial/resources/1663154348643_8ZGUJJLLWV/ml_data/1663154348643_8ZGUJJLLWV.json");
+    let dest_data = read_ml_json(&dets_path);
+    let mut hashm:HashMap<String,String>= HashMap::new();
+    
+    //Encontramos el indice que vamos a coorrelacionar con todos los demas
+    for objectx in &dest_data.element_statistics.nodes{
+            if objectx.a.contains_key("XX"){xxnd = freqnod;}
+            freqnod +=1;
+    }
+    println!("Correlacionamos el nodo con indice {} con el resto",xxnd);
+
+    //Excluimos XX,WT,HT,TP,LT... de la coorrelacion
+    let excludnod:[String;5]= ["XX".to_string(),"WH".to_string(),"HT".to_string(),"TP".to_string(),"LT".to_string()];  
+    for (i, v) in dest_data.element_statistics.nodes[xxnd as usize].a.iter() {
+        if !excludnod.contains(i){
+            hashm.insert(i.to_string(),v.to_string());
+        }       
+    }
+    
+    //Si el elemento del hashmap tiene llave i con valor v, aumentamos en uno
+    for objectx in &dest_data.element_statistics.nodes{
+        corfreqnod = 0.0;
+        for (i, v) in hashm.iter() {
+            if objectx.a.contains_key(i){
+                if &objectx.a[i]==v{ corfreqnod += 1.0;}}
+        }
+        corxx.push((corfreqnod/14.0));  //Lo normalizo sobre 14
+    }
+
+    println!("Imprimiendo coorrelaciones del 40 al 50:... de {} totales\n",corxx.len());
+    for i in 40..50 {
+        println!("cor(Nx,N[{}]) = {:?}",i,corxx[i]);
+    }
+    //print!("{}",corxx[513]);
+    
+}
+/*-------------------------------------------------------------------------------------------------------------*/
+
+fn node_correlation(node1: Node,node2: Node) ->f64{
+    todo!();
+}
 
 fn consume_s(s: String) -> usize {
     s.len()
@@ -10,6 +60,8 @@ enum State<T, Q = i32> {
     ON(Q),
     OFF(T),
 }
+
+
 
 mod topology {
     pub struct Point {
